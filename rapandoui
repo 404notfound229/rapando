@@ -1,5 +1,4 @@
 
-
 local Rapando = {}
 local UIS, TS, Players = game:GetService("UserInputService"), game:GetService("TweenService"), game:GetService("Players")
 
@@ -20,6 +19,21 @@ local dropCloses = {}
 local function new(c,p,props) local i=Instance.new(c) for k,v in pairs(props or {}) do i[k]=v end i.Parent=p return i end
 local function stroke(o,r,c) local s=new("UIStroke",o,{Color=c or T.Border,Thickness=1,ApplyStrokeMode=Enum.ApplyStrokeMode.Border}) if r and r>0 then new("UICorner",o,{CornerRadius=UDim.new(0,r)}) end end
 local function flat(o) stroke(o,nil,Color3.fromRGB(40,40,40)) end
+
+
+local function gradLine(parent, pos, size, z)
+    local line = new("Frame", parent, {
+        BackgroundColor3 = Color3.new(1,1,1),
+        BorderSizePixel = 0,
+        Position = pos,
+        Size = size,
+        ZIndex = z or (parent.ZIndex + 1)
+    })
+    new("UIGradient", line, {
+        Color = ColorSequence.new(Color3.new(0,0,0), Color3.new(1,1,1))
+    })
+    return line
+end
 
 local function drag(f,h)
     h=h or f local d,ds,sp
@@ -44,21 +58,30 @@ function Rapando:CreateWindow(cfg)
     local gui = new("ScreenGui", getParent(), {Name="RapandoUI", ResetOnSpawn=false, DisplayOrder=100, IgnoreGuiInset=true})
     UIS.InputBegan:Connect(function(i,g) if not g and i.UserInputType==Enum.UserInputType.Keyboard and i.KeyCode==toggleKey then gui.Enabled=not gui.Enabled end end)
     
-    -- Keybinds Panel
+
     local kb = new("Frame", gui, {Size=UDim2.new(0,210,0,130), Position=UDim2.new(0,20,0.5,-65), BackgroundColor3=T.WinBG, BorderSizePixel=0, ZIndex=5})
     stroke(kb,3)
+    
     local kbTop = new("Frame", kb, {BackgroundColor3=T.TopBG, BorderSizePixel=0, Size=UDim2.new(1,0,0,20), ZIndex=6})
     new("TextLabel", kbTop, {BackgroundTransparency=1, Font=FB, TextSize=12, TextXAlignment=Enum.TextXAlignment.Left, TextColor3=T.Text, Text="Keybinds", Position=UDim2.new(0,6,0,0), Size=UDim2.new(1,-12,1,0), ZIndex=7})
+    
+    -- ★ GRADIENT LINE under keybinds topbar ★
+    gradLine(kbTop, UDim2.new(0,0,1,-1), UDim2.new(1,0,0,1), 7)
+    
     local kbList = new("TextLabel", kb, {BackgroundColor3=T.SideBG, BorderSizePixel=0, Position=UDim2.new(0,4,0,24), Size=UDim2.new(1,-8,1,-28), Font=FB, TextXAlignment=Enum.TextXAlignment.Left, TextYAlignment=Enum.TextYAlignment.Top, TextSize=11, TextColor3=T.Text, Text="", ZIndex=6})
     stroke(kbList,2)
     drag(kb, kbTop)
     
-    -- Main Window
+
     local main = new("Frame", gui, {Size=winSize, Position=UDim2.new(0.5,-winSize.X.Offset/2,0.5,-winSize.Y.Offset/2), BackgroundColor3=T.WinBG, BorderSizePixel=0, ZIndex=2})
     stroke(main,3)
     
     local top = new("Frame", main, {BackgroundColor3=T.TopBG, BorderSizePixel=0, Size=UDim2.new(1,0,0,24), ZIndex=3})
     new("TextLabel", top, {BackgroundTransparency=1, Font=FB, TextSize=12, TextColor3=T.Text, TextXAlignment=Enum.TextXAlignment.Left, Text=title, Position=UDim2.new(0,8,0,0), Size=UDim2.new(0,80,1,0), ZIndex=4})
+    
+    -- ★ GRADIENT LINE under main topbar (under "rapando") ★
+    gradLine(top, UDim2.new(0,0,1,-1), UDim2.new(1,0,0,1), 4)
+    
     drag(main, top)
     
     local tabBar = new("Frame", top, {BackgroundTransparency=1, Size=UDim2.new(0,300,0,16), Position=UDim2.new(0,90,0,4), ZIndex=5})
@@ -67,11 +90,13 @@ function Rapando:CreateWindow(cfg)
     local content = new("Frame", main, {BackgroundColor3=T.ContBG, BorderSizePixel=0, Position=UDim2.new(0,4,0,26), Size=UDim2.new(1,-8,1,-46), ZIndex=3})
     stroke(content,2)
     
-    
+
     local sb = new("Frame", main, {BackgroundColor3=T.WinBG, BorderSizePixel=0, Size=UDim2.new(1,0,0,16), Position=UDim2.new(0,0,1,-16), ZIndex=3})
     new("Frame", sb, {BackgroundColor3=T.Line, BorderSizePixel=0, Size=UDim2.new(1,0,0,1), ZIndex=4})
     new("TextLabel", sb, {BackgroundTransparency=1, Font=FB, TextSize=11, TextXAlignment=Enum.TextXAlignment.Left, Position=UDim2.new(0,6,0,-1), Size=UDim2.new(0,45,1,0), TextColor3=T.Build, Text="build:", ZIndex=4})
     new("TextLabel", sb, {BackgroundTransparency=1, Font=FB, TextSize=11, TextXAlignment=Enum.TextXAlignment.Left, Position=UDim2.new(0,36,0,-1), Size=UDim2.new(0,100,1,0), TextColor3=T.Live, Text=cfg.Build or "live", ZIndex=4})
+    new("TextLabel", sb, {BackgroundTransparency=1, Font=FB, TextSize=11, TextXAlignment=Enum.TextXAlignment.Right, Position=UDim2.new(1,-80,0,-1), Size=UDim2.new(0,45,1,0), TextColor3=T.Build, Text="Days,", ZIndex=4})
+    new("TextLabel", sb, {BackgroundTransparency=1, Font=FB, TextSize=11, TextXAlignment=Enum.TextXAlignment.Left, Position=UDim2.new(1,-30,0,-1), Size=UDim2.new(0,30,1,0), TextColor3=T.Live, Text=cfg.Days or "32", ZIndex=4})
     
     local Window = {Gui=gui, Main=main, Content=content, TabBar=tabBar, Tabs={}, KeybindsList=kbList, Keybinds={}}
     
@@ -90,7 +115,7 @@ function Rapando:CreateWindow(cfg)
         
         local page = new("Frame", content, {BackgroundTransparency=1, Size=UDim2.new(1,0,1,0), Visible=false, ZIndex=3})
         
-        
+     
         local sideOuter = new("Frame", page, {BackgroundColor3=T.SideBG, BorderSizePixel=0, Position=UDim2.new(0,2,0,2), Size=UDim2.new(0,150,1,-4), ZIndex=3})
         stroke(sideOuter,2)
         local sideInner = new("Frame", sideOuter, {BackgroundColor3=T.GrpBG, BorderSizePixel=0, Position=UDim2.new(0,3,0,3), Size=UDim2.new(1,-6,1,-6), ZIndex=4})
@@ -207,6 +232,7 @@ function Rapando:CreateWindow(cfg)
                         opt.MouseButton1Click:Connect(function()
                             dbtn.Text="  "..item Dropdown.Value=item open=false
                             TS:Create(dropFrame,TI,{Size=UDim2.new(0,dropFrame.Size.X.Offset,0,0)}):Play()
+                            TS:Create(dbtn,TI,{BackgroundColor3=T.CtrlBG}):Play()
                             arrow.Rotation=270
                             task.delay(0.25,function() if not open then dropFrame.Visible=false end end)
                             if cfg.Callback then cfg.Callback(item) end
@@ -219,13 +245,20 @@ function Rapando:CreateWindow(cfg)
                         dropFrame.Size = UDim2.new(0,as.X,0,dropFrame.Size.Y.Offset)
                     end
                     
-                    local function close() if not open then return end open=false TS:Create(dropFrame,TI,{Size=UDim2.new(0,dropFrame.Size.X.Offset,0,0)}):Play() arrow.Rotation=270 task.delay(0.25,function() if not open then dropFrame.Visible=false end end) end
+                    dbtn:GetPropertyChangedSignal("AbsolutePosition"):Connect(pos)
+                    dbtn:GetPropertyChangedSignal("AbsoluteSize"):Connect(pos)
+                    
+                    local function close() if not open then return end open=false TS:Create(dropFrame,TI,{Size=UDim2.new(0,dropFrame.Size.X.Offset,0,0)}):Play() TS:Create(dbtn,TI,{BackgroundColor3=T.CtrlBG}):Play() arrow.Rotation=270 task.delay(0.25,function() if not open then dropFrame.Visible=false end end) end
                     table.insert(dropCloses, close)
+                    
+                    dbtn.MouseEnter:Connect(function() if not open then TS:Create(dbtn,TI,{BackgroundColor3=Color3.fromRGB(25,25,25)}):Play() end end)
+                    dbtn.MouseLeave:Connect(function() if not open then TS:Create(dbtn,TI,{BackgroundColor3=T.CtrlBG}):Play() end end)
                     
                     dbtn.MouseButton1Click:Connect(function()
                         if open then close() return end
                         open=true pos() dropFrame.Visible=true arrow.Rotation=90
                         TS:Create(dropFrame,TI,{Size=UDim2.new(0,dbtn.AbsoluteSize.X,0,openH)}):Play()
+                        TS:Create(dbtn,TI,{BackgroundColor3=Color3.fromRGB(30,30,30)}):Play()
                     end)
                     return Dropdown
                 end
